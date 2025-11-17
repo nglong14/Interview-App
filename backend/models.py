@@ -41,4 +41,29 @@ class Interview(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="interviews")
+    questions = relationship("Question", back_populates="interview", cascade="all, delete-orphan")
 
+class QuestionType(str, enum.Enum):
+    TECHNICAL = "technical"
+    BEHAVIORAL = "behavioral"
+    SYSTEM_DESIGN = "system_design"
+    CODING = "coding"
+    ALGORITHM = "algorithm"
+    DATABASE = "database"
+    GENERAL = "general"
+
+class Difficulty(str, enum.Enum):
+    EASY = "easy"
+    MEDIUM = "medium"
+    HARD = "hard"
+
+class Question(Base):
+    __tablename__="questions"
+    id = Column(Integer, primary_key=True, nullable=False)
+    interview_id = Column(Integer, ForeignKey("interview.id"), nullable=False)
+    question = Column(String, nullable=False)
+    answer = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    interview = relationship("Interview", back_populates="questions")

@@ -12,6 +12,13 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
 
+    #AI provider settings
+    ai_provider: str
+    ai_api_key: str
+    ai_model: str
+    ai_max_tokens: int
+    ai_temperature: float#controls the randomness/creativity -> higher = more creative
+
     class Config:
         env_file = ".env"
         case_sensitive = False
