@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import auth, users, interview
+from .routers import auth, url, users
 from . import models
 from .database import engine, SessionLocal
 
@@ -18,4 +18,4 @@ app.add_middleware(
 
 app.include_router(auth.router)   
 app.include_router(users.router)
-app.include_router(interview.router)
+app.include_router(url.router)  # URL shortener endpoints
