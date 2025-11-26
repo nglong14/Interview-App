@@ -1,7 +1,9 @@
 
 from .. import models, schemas, oauth2, utils, cache
-from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks, Request
 from ..database import get_db
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 import string, random, datetime
 
@@ -10,13 +12,16 @@ router = APIRouter(
     tags=['URLs']
 )
 
+limiter = Limiter(key_func=get_remote_address)
+
 def generate_short_code(length=6):
     chars = string.ascii_letters + string.digits
     return ''.join(random.choices(chars, k=length))
 
 # Create a short URL
 @router.post("/", response_model=schemas.URLResponse, status_code=status.HTTP_201_CREATED)
-def create_short_url(url: schemas.URLCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+@limiter.limit("5/minute")
+def create_short_url(request: Request, url: schemas.URLCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     if current_user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
     short_code = generate_short_code()
@@ -40,7 +45,8 @@ def create_short_url(url: schemas.URLCreate, db: Session = Depends(get_db), curr
 
 # Get all URLs for the current user
 @router.get("/", response_model=list[schemas.URLResponse])
-def get_urls(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+@limiter.limit("15/minute")
+def get_urls(request: Request, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     if current_user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
     
@@ -71,7 +77,8 @@ def update_click_count(short_code: str, db: Session):
 
 # Redirect short URL (public, no auth)
 @router.get("/r/{short_code}")
-def redirect_short_url(short_code: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def redirect_short_url(request: Request, short_code: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     # Try cache first
     cache_key = f"short_url:{short_code}"
     cached_url = cache.get_cache(cache_key)

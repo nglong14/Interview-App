@@ -28,7 +28,7 @@ MarkupSafe==3.0.3
 mdurl==0.1.2
 orjson==3.11.4
 passlib==1.7.4
-psycopg2-binary==2.9.9
+psycopg2-binary
 pwdlib==0.3.0
 redis==5.0.1
 slowapi==0.1.9
