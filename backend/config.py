@@ -12,12 +12,9 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
 
-    #AI provider settings
-    ai_provider: str
-    ai_api_key: str
-    ai_model: str
-    ai_max_tokens: int
-    ai_temperature: float#controls the randomness/creativity -> higher = more creative
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_password: str = ""
 
     class Config:
         env_file = ".env"

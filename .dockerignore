@@ -1,0 +1,149 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environments
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+.virtualenv/
+
+# Distribution / Packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit Test / Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.history/
+
+# Environment Files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+*.dockerfile
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+Jenkinsfile
+
+# Database Files
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+postgres_data/
+redis_data/
+
+# Logs
+*.log
+logs/
+*.out
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Documentation
+README.md
+LICENSE
+docs/
+*.md
+!requirements.txt
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# Alembic (if using migrations)
+# Remove this section if you need alembic in container
+alembic.ini
+alembic/
+
+# Node modules (if you add frontend later)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Media/Uploads (if you store files locally)
+uploads/
+media/
+static/uploads/
+
+# Secrets & Keys
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
