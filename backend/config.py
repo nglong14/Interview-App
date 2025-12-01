@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     
     @property
     def database_url(self) -> str:
-        """Get database URL based on environment"""
+        #Get database URL based on environment
         
         if self.is_production and self.cloud_sql_connection_name:
             # Use Unix socket for Cloud SQL

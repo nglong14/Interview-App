@@ -1,4 +1,3 @@
-#Verify pass word and return hashed password
 from pwdlib import PasswordHash
 
 password_hash = PasswordHash.recommended()
