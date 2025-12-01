@@ -17,7 +17,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Enable CORS to allow requests from Postman and other clients
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins (change in production)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,7 +25,7 @@ app.add_middleware(
 
 app.include_router(auth.router)   
 app.include_router(users.router)
-app.include_router(url.router)  # URL shortener endpoints
+app.include_router(url.router)
 
 @app.get("/health")
 async def health():

@@ -14,7 +14,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 #Create users
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
-@limiter.limit("15/minute")
+@limiter.limit("1500/minute")
 def create_user(request: Request, user:schemas.UserCreate, db: Session = Depends(get_db)):
     hashed_password = utils.get_password_hash(user.password)
     user.password = hashed_password
@@ -26,7 +26,7 @@ def create_user(request: Request, user:schemas.UserCreate, db: Session = Depends
 
 #Get user by id
 @router.get("/{id}", response_model=schemas.UserOut) 
-@limiter.limit("15/minute")
+@limiter.limit("1500/minute")
 def create_user(request: Request, id: int, db: Session = Depends(get_db)):
     user_query = db.query(models.User).filter(models.User.id == id)
     find_user = user_query.first()
