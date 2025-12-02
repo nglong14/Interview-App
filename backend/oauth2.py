@@ -1,5 +1,3 @@
-#Create access token, verify, and then get current user
-
 import jwt
 from jwt.exceptions import InvalidTokenError, PyJWTError
 from datetime import datetime, timedelta
