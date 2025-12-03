@@ -5,6 +5,7 @@ A fast and scalable URL shortening service built with FastAPI, PostgreSQL, and R
 ## Features
 
 - Shorten long URLs into short, shareable links
+- Caching for low latency
 - User authentication with JWT tokens
 - Rate limiting to prevent abuse
 - RESTful API design
