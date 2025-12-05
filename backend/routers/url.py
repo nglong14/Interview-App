@@ -6,6 +6,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 import string, random, datetime
+import asyncio
 
 router = APIRouter(
     prefix="/urls",
@@ -19,9 +20,10 @@ def generate_short_code(length=6):
     return ''.join(random.choices(chars, k=length))
 
 # Create a short URL
-@router.post("/", response_model=schemas.URLResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=schemas.URLResponse, status_code=status.HTTP_201_CREATED
+async def create_short_url(url: schemas.URLCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
 @limiter.limit("1500/minute")
-def create_short_url(request: Request, url: schemas.URLCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+def create_short_url(request: Request, url: schemas.URLCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user
     if current_user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
     short_code = generate_short_code()
@@ -38,19 +40,19 @@ def create_short_url(request: Request, url: schemas.URLCreate, db: Session = Dep
     db.commit()
     db.refresh(db_url)
     
-    cache.invalidate_user_urls_cache(current_user.id)
+    # Invalidate user's URLs cache
+    await asyncio.to_thread(cache.invalidate_user_urls_cache, current_user.id)
     
     return db_url
 
 # Get all URLs for the current user
 @router.get("/", response_model=list[schemas.URLResponse])
-@limiter.limit("1500/minute")
-def get_urls(request: Request, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+async def get_urls(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     if current_user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
     
     cache_key = f"user_urls:{current_user.id}"
-    cached_urls = cache.get_cache(cache_key)
+    cached_urls = await asyncio.to_thread(cache.get_cache, cache_key)
     if cached_urls:
         return cached_urls
     
@@ -58,26 +60,31 @@ def get_urls(request: Request, db: Session = Depends(get_db), current_user: mode
     urls = db.query(models.URL).filter(models.URL.user_id == current_user.id).order_by(models.URL.created_at.desc()).all()
     
     urls_data = [{"id": url.id, "original_url": url.original_url, "short_code": url.short_code, "created_at": url.created_at.isoformat(), "clicks": url.clicks} for url in urls]
-    cache.set_cache(cache_key, urls_data, ttl=3600)
+    await asyncio.to_thread(cache.set_cache, cache_key, urls_data, ttl=3600)
     
     return urls
 
-def update_click_count(short_code: str, db: Session):
+async def update_click_count(short_code: str, db: Session):
+    """Background task to update click count in database"""
     url = db.query(models.URL).filter(models.URL.short_code == short_code).first()
     if url:
-        redis_clicks = cache.get_clicks(short_code)
+        # Get current count from Redis
+        redis_clicks = await asyncio.to_thread(cache.get_clicks, short_code)
+        # Update database with Redis count
         url.clicks = redis_clicks
         db.commit()
 
 # Redirect short URL
 @router.get("/r/{short_code}")
-@limiter.limit("1000/minute")
-def redirect_short_url(request: Request, short_code: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+async def redirect_short_url(short_code: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    # Try cache first
     cache_key = f"short_url:{short_code}"
-    cached_url = cache.get_cache(cache_key)
+    cached_url = await asyncio.to_thread(cache.get_cache, cache_key)
     
     if cached_url:
-        cache.increment_clicks(short_code)
+        # Increment click count in Redis (instant)
+        await asyncio.to_thread(cache.increment_clicks, short_code)
+        # Schedule background task to sync to database
         background_tasks.add_task(update_click_count, short_code, db)
         return cached_url
     
@@ -89,9 +96,10 @@ def redirect_short_url(request: Request, short_code: str, background_tasks: Back
     result = {"original_url": url.original_url}
     
     # Increment click count in Redis
-    cache.increment_clicks(short_code)
+    await asyncio.to_thread(cache.increment_clicks, short_code)
     
-    cache.set_cache(cache_key, result, ttl=86400)
+    # Cache for 24 hours (URLs don't change often)
+    await asyncio.to_thread(cache.set_cache, cache_key, result, ttl=86400)
     
     background_tasks.add_task(update_click_count, short_code, db)
     
